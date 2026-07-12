@@ -33,11 +33,11 @@ export default function RootLayout({
 }>) {
   const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
-  const body = <body>{children}</body>;
-
   return (
     <html lang="ja">
-      {publishableKey ? <ClerkProvider publishableKey={publishableKey}>{body}</ClerkProvider> : body}
+      <body>
+        {publishableKey ? <ClerkProvider publishableKey={publishableKey}>{children}</ClerkProvider> : children}
+      </body>
     </html>
   );
 }

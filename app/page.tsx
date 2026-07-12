@@ -1,5 +1,6 @@
 "use client";
 
+import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { useEffect, useMemo, useState } from "react";
 import { calculateActivityMetrics } from "@/lib/activity-metrics";
 
@@ -77,6 +78,7 @@ export default function Home() {
   const [listening, setListening] = useState(false);
   const [logs, setLogs] = useState<Log[]>(samples);
   const [coachAdvice, setCoachAdvice] = useState<CoachAdvice>(defaultCoachAdvice);
+  const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
   useEffect(() => {
     fetch("/api/bootstrap", { method: "POST" }).catch(() => {
@@ -198,7 +200,23 @@ export default function Home() {
       <header className="topbar">
         <div className="brand"><span className="brandmark">声</span><strong>KOELOG</strong></div>
         <div className="date">2026年7月11日（土）</div>
-        <button className="avatar" aria-label="プロフィール">K</button>
+        {hasClerk ? (
+          <div className="authControls">
+            <Show when="signed-out">
+              <SignInButton mode="modal">
+                <button className="authButton">ログイン</button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="authButton primary">登録</button>
+              </SignUpButton>
+            </Show>
+            <Show when="signed-in">
+              <UserButton />
+            </Show>
+          </div>
+        ) : (
+          <button className="avatar" aria-label="プロフィール">K</button>
+        )}
       </header>
 
       <section className="hero">
