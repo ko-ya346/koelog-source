@@ -3,6 +3,31 @@
 import { useEffect, useMemo, useState } from "react";
 
 type Log = { id: number; category: string; title: string; value: string; time: string };
+type VoiceRecognitionResultEvent = {
+  results: {
+    [index: number]: {
+      [index: number]: {
+        transcript: string;
+      };
+    };
+  };
+};
+type VoiceRecognition = {
+  lang: string;
+  interimResults: boolean;
+  onstart: (() => void) | null;
+  onend: (() => void) | null;
+  onresult: ((event: VoiceRecognitionResultEvent) => void) | null;
+  start: () => void;
+};
+type VoiceRecognitionConstructor = new () => VoiceRecognition;
+
+declare global {
+  interface Window {
+    SpeechRecognition?: VoiceRecognitionConstructor;
+    webkitSpeechRecognition?: VoiceRecognitionConstructor;
+  }
+}
 
 const samples: Log[] = [
   { id: 1, category: "仕事", title: "世界環境サミット資料", value: "2時間・進捗70%", time: "14:20" },
@@ -32,7 +57,7 @@ export default function Home() {
 
   useEffect(() => {
     const saved = localStorage.getItem("koelog-records");
-    if (saved) setLogs(JSON.parse(saved));
+    if (saved) queueMicrotask(() => setLogs(JSON.parse(saved) as Log[]));
   }, []);
 
   useEffect(() => {
@@ -48,14 +73,14 @@ export default function Home() {
   }
 
   function startVoice() {
-    const Recognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!Recognition) { alert("このブラウザでは音声入力を利用できません。文字入力でお試しください。"); return; }
     const recognition = new Recognition();
     recognition.lang = "ja-JP";
     recognition.interimResults = false;
     recognition.onstart = () => setListening(true);
     recognition.onend = () => setListening(false);
-    recognition.onresult = (event: any) => setText((v) => `${v}${v ? "。" : ""}${event.results[0][0].transcript}`);
+    recognition.onresult = (event) => setText((v) => `${v}${v ? "。" : ""}${event.results[0][0].transcript}`);
     recognition.start();
   }
 

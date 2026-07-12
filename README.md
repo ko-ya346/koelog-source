@@ -60,25 +60,31 @@ npm run build
 npm test
 ```
 
-`npm test` は vinext build 後に、Worker 経由でトップページの HTML をレンダリングして確認します。
+`npm test` は `next build` 後に、現在の KOELOG UI とブラウザ保存の前提がソース上に残っていることを確認します。
 
 ## デプロイ
 
 デプロイ方針と確認項目は [docs/deployment.md](docs/deployment.md) にまとめています。
 
-このリポジトリは vinext で Next.js App Router を Cloudflare Workers / OpenAI Sites 向けにビルドします。`.openai/hosting.json` の `project_id` を使って Sites の version 保存と production deploy を行います。
+このリポジトリは通常の Next.js App Router アプリです。Vercel に GitHub リポジトリを接続すれば、標準設定で `npm install` と `npm run build` が実行されます。
 
-## データベース
+### Vercel 設定
 
-`db/` には Cloudflare D1 + Drizzle の準備がありますが、現在の本体アプリではまだ使っていません。
+- Framework Preset: Next.js
+- Build Command: `npm run build`
+- Install Command: `npm install`
+- Output Directory: 未設定
+- Node.js: `>=22.13.0`
 
-- [db/schema.ts](db/schema.ts): 現時点では空
-- [db/index.ts](db/index.ts): D1 binding から Drizzle client を作る helper
-- [examples/d1/](examples/d1/): D1 を使う場合のサンプル
+### 環境変数
 
-## 認証
+現在の機能はブラウザの `localStorage` だけで動くため、Vercel に設定必須の環境変数はありません。
 
-[app/chatgpt-auth.ts](app/chatgpt-auth.ts) に Sign in with ChatGPT 用 helper がありますが、現在の画面ではまだ使っていません。
+今後、AI 解析、DB、認証、通知を追加するときに環境変数を追加します。例:
+
+- `OPENAI_API_KEY`: AI 解析や月次振り返りを実装するときに使用
+- `DATABASE_URL`: Vercel Postgres などの永続 DB を使うときに使用
+- `AUTH_SECRET`: 認証を追加するときに使用
 
 ## 関連 issue
 

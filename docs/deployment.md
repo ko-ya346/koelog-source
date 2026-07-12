@@ -2,17 +2,9 @@
 
 ## 方針
 
-KOELOG は vinext で Next.js App Router を Cloudflare Workers / OpenAI Sites 向けにビルドする。
+KOELOG は通常の Next.js App Router アプリとして Vercel にデプロイする。
 
-このリポジトリにはすでに `.openai/hosting.json` があり、Sites の既存 project_id を使う。
-
-```json
-{
-  "project_id": "appgprj_6a51f84a680c8191b390352ef1fff26a",
-  "d1": null,
-  "r2": null
-}
-```
+Cloudflare Workers、vinext、OpenAI Sites は使わない。
 
 ## ローカル確認
 
@@ -27,24 +19,33 @@ npm run build
 npm run dev
 ```
 
+## Vercel 設定
+
+Vercel に GitHub リポジトリを接続し、以下の標準設定でデプロイする。
+
+- Framework Preset: Next.js
+- Install Command: `npm install`
+- Build Command: `npm run build`
+- Output Directory: 未設定
+- Node.js Version: `>=22.13.0`
+
+## 環境変数
+
+現在の機能はブラウザの `localStorage` で動くため、必須の環境変数はない。
+
+今後の機能追加で必要になりうる環境変数:
+
+- `OPENAI_API_KEY`: AI 解析や月次振り返り
+- `DATABASE_URL`: Vercel Postgres などの永続 DB
+- `AUTH_SECRET`: 認証
+- `NEXT_PUBLIC_APP_URL`: 通知や外部連携でアプリ URL が必要な場合
+
 ## デプロイ前チェック
 
-- `npm run build` が成功すること
-- `.openai/hosting.json` の `project_id` が変わっていないこと
-- D1/R2 を使う変更がある場合、`.openai/hosting.json` と Sites 側の binding 方針を確認すること
-- AI API キーなどの秘密値をリポジトリに置かず、Sites の環境変数で管理すること
-
-## Sites への反映手順
-
-Codex から Sites コネクタを使って反映する場合:
-
-1. 変更を commit する
-2. `git push` でリモートへ送る
-3. Sites の既存 project_id に対して version を保存する
-4. 保存済み version を本番へ deploy する
-5. 発行された URL で表示確認する
-
-Sites では、保存する version の `commit_sha` が push 済みの HEAD と一致している必要がある。
+- `npm run build` が成功する
+- `npm test` が成功する
+- Vercel 固有の環境変数が必要な変更を入れた場合、Vercel 側にも同じ key を設定する
+- 秘密値をリポジトリに commit しない
 
 ## 初期の実機確認項目
 
@@ -54,11 +55,3 @@ Sites では、保存する version の `commit_sha` が push 済みの HEAD と
 - 対応ブラウザで音声入力を開始できる
 - リロード後に localStorage の記録が残る
 - リセットボタンで初期サンプルに戻る
-
-## 今後追加される運用項目
-
-- D1: 記録、目標、期限、チーム共有の永続化
-- 環境変数: AI 解析 API、通知 API、外部カレンダー連携など
-- 認証: ChatGPT sign-in または別認証方式
-- 通知: アプリ内通知、メール、push 通知のいずれか
-- テスト: 現在の KOELOG UI に合ったレンダリングテスト
