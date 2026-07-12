@@ -78,12 +78,16 @@ npm test
 
 ### 環境変数
 
-現在の機能はブラウザの `localStorage` だけで動くため、Vercel に設定必須の環境変数はありません。
+環境変数なしでも画面は動き、ブラウザの `localStorage` にフォールバックします。
 
-今後、AI 解析、DB、認証、通知を追加するときに環境変数を追加します。例:
+サーバー側に記録を永続化する場合:
+
+- `POSTGRES_URL`: Vercel Postgres / Neon などの Postgres 接続 URL
+- `DATABASE_URL`: `POSTGRES_URL` の代替として使用できる Postgres 接続 URL
+
+今後、AI 解析、認証、通知を追加するときに環境変数を追加します。例:
 
 - `OPENAI_API_KEY`: AI 解析や月次振り返りを実装するときに使用
-- `DATABASE_URL`: Vercel Postgres などの永続 DB を使うときに使用
 - `AUTH_SECRET`: 認証を追加するときに使用
 
 ## 関連 issue

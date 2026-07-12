@@ -56,8 +56,30 @@ export default function Home() {
   const [logs, setLogs] = useState<Log[]>(samples);
 
   useEffect(() => {
-    const saved = localStorage.getItem("koelog-records");
-    if (saved) queueMicrotask(() => setLogs(JSON.parse(saved) as Log[]));
+    let ignore = false;
+
+    async function loadRecords() {
+      try {
+        const response = await fetch("/api/records");
+        if (response.ok) {
+          const payload = (await response.json()) as { records?: Log[] };
+          if (!ignore && payload.records && payload.records.length > 0) {
+            setLogs(payload.records);
+            return;
+          }
+        }
+      } catch {
+        // Keep the prototype usable without a configured database.
+      }
+
+      const saved = localStorage.getItem("koelog-records");
+      if (!ignore && saved) setLogs(JSON.parse(saved) as Log[]);
+    }
+
+    loadRecords();
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -66,10 +88,36 @@ export default function Home() {
 
   const workMinutes = useMemo(() => logs.filter((x) => x.category === "仕事").length * 120, [logs]);
 
-  function save() {
+  async function save() {
     if (!text.trim()) return;
-    setLogs((prev) => [...parseVoice(text), ...prev]);
+    const parsed = parseVoice(text);
+    try {
+      const response = await fetch("/api/records", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ records: parsed }),
+      });
+
+      if (response.ok) {
+        const payload = (await response.json()) as { records?: Log[] };
+        setLogs((prev) => [...(payload.records ?? parsed), ...prev]);
+      } else {
+        setLogs((prev) => [...parsed, ...prev]);
+      }
+    } catch {
+      setLogs((prev) => [...parsed, ...prev]);
+    }
     setText("");
+  }
+
+  async function resetRecords() {
+    try {
+      await fetch("/api/records", { method: "DELETE" });
+    } catch {
+      // localStorage reset below is enough when the API is unavailable.
+    }
+    localStorage.removeItem("koelog-records");
+    setLogs(samples);
   }
 
   function startVoice() {
@@ -118,7 +166,7 @@ export default function Home() {
 
         <div className="contentGrid">
           <section className="panel">
-            <div className="panelHead"><h3>今日の記録</h3><button onClick={() => { localStorage.removeItem("koelog-records"); setLogs(samples); }}>リセット</button></div>
+            <div className="panelHead"><h3>今日の記録</h3><button onClick={resetRecords}>リセット</button></div>
             <div className="timeline">
               {logs.map((log) => <div className="log" key={log.id}><time>{log.time}</time><span className={`tag ${log.category}`}>{log.category}</span><div><strong>{log.title}</strong><p>{log.value}</p></div></div>)}
             </div>
