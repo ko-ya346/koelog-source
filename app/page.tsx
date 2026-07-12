@@ -51,6 +51,22 @@ function parseVoice(text: string): Log[] {
   });
 }
 
+async function analyzeText(text: string): Promise<Log[]> {
+  const response = await fetch("/api/analyze", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ text }),
+  });
+
+  if (!response.ok) throw new Error("AI analysis unavailable");
+
+  const payload = (await response.json()) as { records?: Omit<Log, "id">[] };
+  return (payload.records ?? []).map((record, index) => ({
+    id: Date.now() + index,
+    ...record,
+  }));
+}
+
 export default function Home() {
   const [text, setText] = useState("");
   const [listening, setListening] = useState(false);
@@ -91,7 +107,14 @@ export default function Home() {
 
   async function save() {
     if (!text.trim()) return;
-    const parsed = parseVoice(text);
+    let parsed: Log[];
+    try {
+      parsed = await analyzeText(text);
+      if (parsed.length === 0) parsed = parseVoice(text);
+    } catch {
+      parsed = parseVoice(text);
+    }
+
     try {
       const response = await fetch("/api/records", {
         method: "POST",

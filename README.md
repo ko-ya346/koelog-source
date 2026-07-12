@@ -87,7 +87,8 @@ npm test
 
 今後、AI 解析、認証、通知を追加するときに環境変数を追加します。例:
 
-- `OPENAI_API_KEY`: AI 解析や月次振り返りを実装するときに使用
+- `OPENAI_API_KEY`: AI 解析や月次振り返りを使う場合に設定
+- `OPENAI_MODEL`: AI 解析で使うモデル。未設定時は `gpt-4.1-mini`
 - `AUTH_SECRET`: 認証を追加するときに使用
 
 ## 関連 issue
