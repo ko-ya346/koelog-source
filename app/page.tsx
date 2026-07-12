@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { calculateActivityMetrics } from "@/lib/activity-metrics";
 
 type Log = { id: number; category: string; title: string; value: string; time: string };
 type VoiceRecognitionResultEvent = {
@@ -86,7 +87,7 @@ export default function Home() {
     localStorage.setItem("koelog-records", JSON.stringify(logs));
   }, [logs]);
 
-  const workMinutes = useMemo(() => logs.filter((x) => x.category === "仕事").length * 120, [logs]);
+  const metrics = useMemo(() => calculateActivityMetrics(logs), [logs]);
 
   async function save() {
     if (!text.trim()) return;
@@ -158,10 +159,10 @@ export default function Home() {
       <section className="dashboard">
         <div className="sectionTitle"><div><p className="eyebrow">TODAY</p><h2>今日のまとめ</h2></div><span className="status">順調なペース</span></div>
         <div className="stats">
-          <article><span>仕事</span><strong>{Math.floor(workMinutes / 60)}<small>時間</small></strong><em>目標 6時間</em></article>
-          <article><span>目標達成率</span><strong>63<small>%</small></strong><em>前日から +8%</em></article>
-          <article><span>健康</span><strong>72.4<small>kg</small></strong><em>前月比 −0.6kg</em></article>
-          <article className="warning"><span>未完了の期限</span><strong>2<small>件</small></strong><em>次は7月20日</em></article>
+          <article><span>仕事</span><strong>{Math.floor(metrics.workMinutes / 60)}<small>時間</small></strong><em>目標 6時間</em></article>
+          <article><span>目標達成率</span><strong>{metrics.goalProgress ?? 0}<small>%</small></strong><em>記録から自動集計</em></article>
+          <article><span>健康</span><strong>{metrics.latestWeightKg ?? "--"}<small>kg</small></strong><em>最新の健康記録</em></article>
+          <article className="warning"><span>未完了の期限</span><strong>{metrics.deadlineCount}<small>件</small></strong><em>記録から自動抽出</em></article>
         </div>
 
         <div className="contentGrid">
