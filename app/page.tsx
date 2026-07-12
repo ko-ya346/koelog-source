@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { calculateActivityMetrics } from "@/lib/activity-metrics";
 
 type Log = { id: number; category: string; title: string; value: string; time: string };
+type CoachAdvice = { title: string; body: string };
 type VoiceRecognitionResultEvent = {
   results: {
     [index: number]: {
@@ -35,6 +36,10 @@ const samples: Log[] = [
   { id: 2, category: "健康", title: "体重", value: "72.4 kg", time: "08:10" },
   { id: 3, category: "食事", title: "朝食", value: "トースト、卵、コーヒー", time: "08:15" },
 ];
+const defaultCoachAdvice: CoachAdvice = {
+  title: "明日は、朝の30分を制作に使いましょう。",
+  body: "午前中に制作した日は、目標進捗が平均22%高くなっています。9:00から30分確保すると、今月のペースに戻れます。",
+};
 
 function parseVoice(text: string): Log[] {
   const now = new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
@@ -71,6 +76,7 @@ export default function Home() {
   const [text, setText] = useState("");
   const [listening, setListening] = useState(false);
   const [logs, setLogs] = useState<Log[]>(samples);
+  const [coachAdvice, setCoachAdvice] = useState<CoachAdvice>(defaultCoachAdvice);
 
   useEffect(() => {
     let ignore = false;
@@ -101,6 +107,31 @@ export default function Home() {
 
   useEffect(() => {
     localStorage.setItem("koelog-records", JSON.stringify(logs));
+  }, [logs]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadAdvice() {
+      try {
+        const response = await fetch("/api/monthly-review", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ logs }),
+        });
+        if (!response.ok) return;
+
+        const advice = (await response.json()) as CoachAdvice;
+        if (!ignore && advice.title && advice.body) setCoachAdvice(advice);
+      } catch {
+        // Keep the existing static advice when AI review is unavailable.
+      }
+    }
+
+    loadAdvice();
+    return () => {
+      ignore = true;
+    };
   }, [logs]);
 
   const metrics = useMemo(() => calculateActivityMetrics(logs), [logs]);
@@ -197,8 +228,8 @@ export default function Home() {
           </section>
           <aside>
             <section className="coach">
-              <p className="eyebrow">AI COACH</p><h3>明日は、朝の30分を<br />制作に使いましょう。</h3>
-              <p>午前中に制作した日は、目標進捗が平均22%高くなっています。9:00から30分確保すると、今月のペースに戻れます。</p>
+              <p className="eyebrow">AI COACH</p><h3>{coachAdvice.title}</h3>
+              <p>{coachAdvice.body}</p>
               <button>予定に追加する</button>
             </section>
             <section className="deadlines"><div className="panelHead"><h3>期限・支払い</h3><span>2件</span></div><p><b>7/20</b> 電気代の支払い</p><p><b>7/25</b> 旅行代金の振込</p></section>
