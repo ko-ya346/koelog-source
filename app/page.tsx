@@ -79,6 +79,12 @@ export default function Home() {
   const [coachAdvice, setCoachAdvice] = useState<CoachAdvice>(defaultCoachAdvice);
 
   useEffect(() => {
+    fetch("/api/bootstrap", { method: "POST" }).catch(() => {
+      // Keep the prototype usable when Clerk or the database is not configured.
+    });
+  }, []);
+
+  useEffect(() => {
     let ignore = false;
 
     async function loadRecords() {

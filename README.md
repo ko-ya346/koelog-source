@@ -133,11 +133,17 @@ npm test
 - `POSTGRES_URL_NON_POOLING`: migration 用 direct/non-pooling URL の候補
 - `DATABASE_MIGRATION_URL`: 必要に応じて明示的に追加する migration 用 URL
 
+Clerk 認証を有効にする場合:
+
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: Clerk の公開キー
+- `CLERK_SECRET_KEY`: Clerk の秘密キー
+
+Clerk の環境変数が未設定の場合、ローカルでは認証保護と初回workspace作成は無効になり、既存のプロトタイプUIを表示します。Vercelで公開する環境では Development / Production それぞれにClerkの環境変数を設定してください。
+
 今後、AI 解析、認証、通知を追加するときに環境変数を追加します。例:
 
 - `OPENAI_API_KEY`: AI 解析や月次振り返りを使う場合に設定
 - `OPENAI_MODEL`: AI 解析で使うモデル。未設定時は `gpt-4.1-mini`
-- `AUTH_SECRET`: 認証を追加するときに使用
 
 ## 関連 issue
 
