@@ -58,6 +58,47 @@ npm run dev
 npm run build
 ```
 
+## Database / Migration
+
+DB は Neon PostgreSQL を使用します。Vercel では Development と Production で別 DB を接続しています。
+
+- Development: `koelog-dev`
+- Production: `koelog-prod`
+- Preview: 未設定
+
+ローカル開発では、Vercel の Development 環境から接続情報を取得します。
+
+```bash
+vercel link
+vercel env pull .env.local --environment=development
+```
+
+接続文字列そのものはログやPR本文に貼らないでください。
+
+### Drizzle
+
+schema は `db/schema.ts`、migration は `drizzle/` に配置します。
+
+```bash
+npm run db:generate
+```
+
+生成された SQL をレビューしてから、Development DB にだけ適用します。
+
+```bash
+npm run db:migrate:dev
+```
+
+`db:migrate:dev` は `KOELOG_DB_TARGET=development` を明示して実行します。`drizzle.config.ts` は migration 実行時にこの値がない場合、誤適用防止のため失敗します。
+
+Production DB への migration は、通常の `npm run dev`、`npm run build`、Vercel の通常デプロイでは実行しません。Production に適用する場合は、事前に以下を確認してから人間が明示的に実行します。
+
+- 対象が `koelog-prod` であること
+- 適用予定の migration ファイル
+- Development で適用済み、動作確認済みであること
+- 破壊的変更の有無
+- 必要に応じたバックアップまたは復旧方法
+
 ## テスト
 
 ```bash
@@ -86,8 +127,11 @@ npm test
 
 サーバー側に記録を永続化する場合:
 
-- `POSTGRES_URL`: Vercel Postgres / Neon などの Postgres 接続 URL
-- `DATABASE_URL`: `POSTGRES_URL` の代替として使用できる Postgres 接続 URL
+- `DATABASE_URL`: アプリ実行時の Postgres 接続 URL
+- `POSTGRES_URL`: Vercel/Neon 連携が生成する代替名
+- `DATABASE_URL_UNPOOLED`: migration 用 direct/non-pooling URL の候補
+- `POSTGRES_URL_NON_POOLING`: migration 用 direct/non-pooling URL の候補
+- `DATABASE_MIGRATION_URL`: 必要に応じて明示的に追加する migration 用 URL
 
 今後、AI 解析、認証、通知を追加するときに環境変数を追加します。例:
 
