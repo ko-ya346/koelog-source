@@ -1,6 +1,6 @@
 "use client";
 
-import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { Show, SignInButton, SignUpButton, UserButton, useAuth } from "@clerk/nextjs";
 import { useEffect, useMemo, useState } from "react";
 import { calculateActivityMetrics } from "@/lib/activity-metrics";
 
@@ -73,18 +73,32 @@ async function analyzeText(text: string): Promise<Log[]> {
   }));
 }
 
+function BootstrapOnSignIn() {
+  const { isLoaded, isSignedIn } = useAuth();
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) return;
+
+    fetch("/api/bootstrap", { method: "POST" })
+      .then((response) => {
+        if (!response.ok) {
+          console.warn("KOELOG bootstrap failed", { status: response.status });
+        }
+      })
+      .catch((error: unknown) => {
+        console.warn("KOELOG bootstrap request failed", error);
+      });
+  }, [isLoaded, isSignedIn]);
+
+  return null;
+}
+
 export default function Home() {
   const [text, setText] = useState("");
   const [listening, setListening] = useState(false);
   const [logs, setLogs] = useState<Log[]>(samples);
   const [coachAdvice, setCoachAdvice] = useState<CoachAdvice>(defaultCoachAdvice);
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
-
-  useEffect(() => {
-    fetch("/api/bootstrap", { method: "POST" }).catch(() => {
-      // Keep the prototype usable when Clerk or the database is not configured.
-    });
-  }, []);
 
   useEffect(() => {
     let ignore = false;
@@ -197,6 +211,7 @@ export default function Home() {
 
   return (
     <main>
+      {hasClerk ? <BootstrapOnSignIn /> : null}
       <header className="topbar">
         <div className="brand"><span className="brandmark">声</span><strong>KOELOG</strong></div>
         <div className="date">2026年7月11日（土）</div>
