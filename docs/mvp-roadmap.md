@@ -78,6 +78,8 @@ KOELOG の MVP では、最初に次の仮説を検証する。
 - `npm run build` が通る。
 - `npm test` が通る。
 - Vercel に `DATABASE_URL` / Clerk env を設定するとログインできる。
+- Development は `koelog-dev`、Production は `koelog-prod` を参照する。
+- Preview は未設定または明示された接続先だけを使い、Production DB に勝手に接続しない。
 - 初回ログイン後に `users`, `workspaces`, `workspace_members` が冪等に作成される。
 - record を作成すると Neon に保存される。
 - リロード後も record が表示される。
@@ -91,6 +93,10 @@ KOELOG の MVP では、最初に次の仮説を検証する。
    - schema / migration の追加
    - DB 接続 helper
    - local dev 用 env example
+   - Vercel/Neon の Development/Production env 名を確認
+   - `DATABASE_URL` と migration 用 direct/non-pooling URL の扱いを決める
+   - `koelog-dev` と `koelog-prod` の環境分離を docs に明記
+   - migration は `koelog-dev` のみに実行し、Production へは実行しない
 
 2. PR 1-2: Clerk 認証の導入
    - Clerk middleware
@@ -546,9 +552,12 @@ POST /api/invitations/:id/accept
 - 初期 migration 追加
 - `lib/db.ts` 追加
 - `.env.example` 追加
-- README に Neon / Drizzle の最小セットアップ追記
+- README / docs に Neon / Drizzle の最小セットアップ追記
+- Development は `koelog-dev`、Production は `koelog-prod` へ分離されていることを追記
+- `koelog-dev` への migration 実行手順を追記
+- `koelog-prod` への migration 禁止事項と本番適用前チェックを追記
 
-この PR では Clerk 認証も UI 変更も入れない。
+この PR では Clerk 認証も UI 変更も入れない。Production DB への migration、テーブル作成、接続確認クエリ、テストデータ投入も行わない。
 
 理由:
 
