@@ -29,6 +29,8 @@ test("keeps the browser input shell and DB-backed record behavior explicit", asy
   assert.match(page, /function parseVoice/);
   assert.match(page, /ログイン中のアカウントに保存されます/);
   assert.match(page, /fetch\("\/api\/records"/);
+  assert.doesNotMatch(page, /電気代の支払い/);
+  assert.doesNotMatch(page, /旅行代金の振込/);
   assert.match(layout, /title:\s*"KOELOG — 声で整う生活ログ"/);
   assert.match(manifest, /short_name:\s*"KOELOG"/);
 });

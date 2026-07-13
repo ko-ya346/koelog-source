@@ -51,10 +51,6 @@ const defaultCoachAdvice: CoachAdvice = {
   title: "明日は、朝の30分を制作に使いましょう。",
   body: "午前中に制作した日は、目標進捗が平均22%高くなっています。9:00から30分確保すると、今月のペースに戻れます。",
 };
-const defaultDeadlines = [
-  { label: "7/20", title: "電気代の支払い" },
-  { label: "7/25", title: "旅行代金の振込" },
-];
 
 function extractDeadline(log: Log): DeadlineItem | null {
   const value = `${log.title} ${log.value}`;
@@ -158,10 +154,7 @@ export default function Home() {
   }, [loadRecords]);
 
   const metrics = useMemo(() => calculateActivityMetrics(logs), [logs]);
-  const deadlines = useMemo(() => {
-    const extracted = extractDeadlines(logs);
-    return extracted.length > 0 ? extracted : defaultDeadlines;
-  }, [logs]);
+  const deadlines = useMemo(() => extractDeadlines(logs), [logs]);
 
   async function save() {
     if (!text.trim() || saving) return;
@@ -378,7 +371,10 @@ export default function Home() {
               <p>{coachAdvice.body}</p>
               <button onClick={runMonthlyReview} disabled={reviewing}>{reviewing ? "実行中…" : "月次レビュー"}</button>
             </section>
-            <section className="deadlines"><div className="panelHead"><h3>期限・支払い</h3><span>{deadlines.length}件</span></div>{deadlines.map((deadline) => <p key={`${deadline.label}-${deadline.title}`}><b>{deadline.label}</b> {deadline.title}</p>)}</section>
+            <section className="deadlines">
+              <div className="panelHead"><h3>期限・支払い</h3><span>{deadlines.length}件</span></div>
+              {deadlines.map((deadline) => <p key={`${deadline.label}-${deadline.title}`}><b>{deadline.label}</b> {deadline.title}</p>)}
+            </section>
           </aside>
         </div>
       </section>
